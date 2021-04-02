@@ -1,5 +1,5 @@
 # pylint: disable=maybe-no-member
-from util import log, config, generate_with_device_code, generate_with_auth_code
+from util import log, generate_with_device_code, generate_with_auth_code
 import requests
 import crayons
 import time
@@ -7,13 +7,9 @@ import json
 import os
 import sys
 
-if config()['output_type'] not in [0, 1]:
-    log(f'{crayons.red("[ERROR]")} The selected output type in config.json are invalid. Make sure is one of these: "1" "0"')
-    exit()
-
 def init():
     os.system(f'{"clear" if sys.platform != "win32" else "cls"}')
-    log(f'{crayons.cyan("Device Auth Tool", bold=True)} {crayons.magenta("-", bold=True)} {crayons.cyan("By Bay#8172", bold=True)}\n')
+    log(f'{crayons.cyan("Device Auth Tool", bold=True)} {crayons.magenta("-", bold=True)} {crayons.cyan("By Bay#8172", bold=True)} {crayons.yellow("[Debug Enabled]") if "--debug" in sys.argv else ""}\n')
 
     clients = ['SwitchGameClient', 'IOSGameClient', 'AndroidGameClient']
     listcls = []
@@ -79,7 +75,7 @@ def init():
         else:
             log('Generated device auths successfully!')
 
-    time.sleep(7.5)
+    input(crayons.white('\n Press enter to continue', bold=True))
 
 if __name__ == '__main__':
     while True:

@@ -6,9 +6,6 @@ import webbrowser
 import json
 import sys
 
-def config():
-    return json.load(open('config.json', 'r', encoding='utf-8'))
-
 def log(content: str, debug=False, raw=False):
     timestamp = datetime.datetime.now().strftime('%H:%M:%S')
     to_print = f'{crayons.green(f"[{timestamp}]")} {content}'
@@ -16,6 +13,8 @@ def log(content: str, debug=False, raw=False):
     if debug == True:
         if '--debug' in sys.argv:
             to_print = f'{crayons.green(f"[{timestamp}]")} {crayons.yellow("[DEBUG]")} {content}'
+        else:
+            return None
 
     if raw == True:
         return to_print
@@ -109,6 +108,8 @@ def generate_with_device_code(client: str):
             if response.status_code == 200:
 
                 device_auths = response.json()
+                accInfo = account_info.json()
+                filename = accInfo["email"].split('@')[0]
                 log(f'Success! {device_auths}', True)
 
                 newdata = {
@@ -116,17 +117,44 @@ def generate_with_device_code(client: str):
                     "account_id": device_auths['accountId'],
                     "secret": device_auths['secret']
                 }
-                if config()['output_type'] == 0:
-                    with open(f'output/{auth_session["displayName"]}.json', 'w', encoding='utf-8') as f:
-                        json.dump({account_info.json()["email"]: newdata}, f, indent=4)
-                        log(f'Saved data in "output/{auth_session["displayName"]}.json"', True)
-                else:
-                    prev_auths = json.load(open('output/device_auths.json', 'r', encoding='utf-8'))
-                    prev_auths[account_info.json()["email"]] = newdata
+                print('')
+                save_selections = ['device_auths.json', f'{filename}.json']
+                listcls = []
+                count = 0
+                for selection in save_selections:
+                    count += 1
+                    listcls.append(count)
+                    log(f'{crayons.red("-")} {count}. {selection}')
+            
 
-                    with open(f'output/device_auths.json', 'w', encoding='utf-8') as f:
-                        json.dump(prev_auths, f, indent=4)
-                        log(f'Saved data in "output/device_auths.json"', True)
+                while True:
+                    save_selection = input(log(f'Select the output file: ', raw=True))
+                    try:
+                        save_selection.strip(' ')
+                        if int(save_selection) not in listcls:
+                            log(crayons.red('Invalid selection\n'))
+                            continue
+
+                    except:
+                        log(crayons.red('Please enter a valid number\n'))
+                        continue
+
+                    final_save_selection = int(save_selection) -1
+                    break
+
+                kill_token(auth_session)
+
+                if save_selections[final_save_selection] == 'device_auths.json':
+                    prev_file = json.load(open('output/device_auths.json', 'r', encoding='utf-8'))
+                    prev_file[accInfo["email"]] = newdata
+
+                    with open('output/device_auths.json', 'w', encoding='utf-8') as f:
+                        json.dump(prev_file, f, indent=4)
+                        return newdata
+                else:
+                    with open(f'output/{save_selections[final_save_selection]}', 'w', encoding='utf-8') as f:
+                        json.dump({accInfo["email"]: newdata}, f, indent=4)
+                        return newdata
 
             else:
                 log(f'Failed while generating device auths: {crayons.red(response.json())}')
@@ -147,7 +175,7 @@ def generate_with_auth_code(client: str):
     log('Web browser opened...', True)
     webbrowser.open(f'https://www.epicgames.com/id/logout?redirectUrl=https%3A//www.epicgames.com/id/login%3FredirectUrl%3Dhttps%253A%252F%252Fwww.epicgames.com%252Fid%252Fapi%252Fredirect%253FclientId%253D{selected_client_data["client_id"]}%2526responseType%253Dcode')
     log('Waiting for code from the user...', True)
-    code = input(log('Login with the required account and then paste the code here: ', raw=True))
+    code = input(log('Login with the required account and paste the code here: ', raw=True))
     code.strip(' ')
 
     log('Trying to auth with entered code...', True)
@@ -175,6 +203,8 @@ def generate_with_auth_code(client: str):
 
         if response.status_code == 200:
             device_auths = response.json()
+            accInfo = account_info.json()
+            filename = accInfo["email"].split('@')[0]
             log(f'Success: {device_auths}', True)
 
             newdata = {
@@ -182,19 +212,46 @@ def generate_with_auth_code(client: str):
                 "account_id": device_auths['accountId'],
                 "secret": device_auths['secret']
             }
-            if config()['output_type'] == 0:
-                with open(f'output/{auth_session["displayName"]}.json', 'w', encoding='utf-8') as f:
-                    json.dump({account_info.json()["email"]: newdata}, f, indent=4)
-                    log(f'Saved data in "output/{auth_session["displayName"]}.json"', True)
+
+            print('')
+            save_selections = ['device_auths.json', f'{filename}.json']
+            listcls = []
+            count = 0
+            for selection in save_selections:
+                count += 1
+                listcls.append(count)
+                log(f'{crayons.red("-")} {count}. {selection}')
+        
+
+            while True:
+                save_selection = input(log(f'Select the output file: ', raw=True))
+                try:
+                    save_selection.strip(' ')
+                    if int(save_selection) not in listcls:
+                        log(crayons.red('Invalid selection\n'))
+                        continue
+
+                except:
+                    log(crayons.red('Please enter a valid number\n'))
+                    continue
+
+                final_save_selection = int(save_selection) -1
+                break
+
+            accInfo = account_info.json()
+            kill_token(auth_session)
+
+            if save_selections[final_save_selection] == 'device_auths.json':
+                prev_file = json.load(open('output/device_auths.json', 'r', encoding='utf-8'))
+                prev_file[accInfo["email"]] = newdata
+
+                with open('output/device_auths.json', 'w', encoding='utf-8') as f:
+                    json.dump(prev_file, f, indent=4)
+                    return newdata
             else:
-                prev_auths = json.load(open('output/device_auths.json', 'r', encoding='utf-8'))
-                prev_auths[account_info.json()["email"]] = newdata
-
-                with open(f'output/device_auths.json', 'w', encoding='utf-8') as f:
-                    json.dump(prev_auths, f, indent=4)
-                    log(f'Saved data in "output/device_auths.json"', True)
-
-            return newdata
+                with open(f'output/{save_selections[final_save_selection]}', 'w', encoding='utf-8') as f:
+                    json.dump({accInfo["email"]: newdata}, f, indent=4)
+                    return newdata
 
         else:
             log(f'Failed while trying to generate device auths: {crayons.red(response.json())}')
@@ -202,3 +259,16 @@ def generate_with_auth_code(client: str):
     else:
         log(f'Failed while trying to authenticate with authorization code: {crayons.red(response.json())}')
         return False
+
+
+def kill_token(auth_session: dict):
+
+    log('Killing generated auth session of user...', True)
+    
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": f"bearer {auth_session['access_token']}"
+    }
+    response = requests.delete(f'https://account-public-service-prod.ol.epicgames.com/account/api/oauth/sessions/kill/{auth_session["access_token"]}', headers=headers)
+    if response.ok:
+        log('Killed!', True)
