@@ -21,27 +21,9 @@ def log(content: str, debug=False, raw=False):
 
     print(to_print)
 
-clientsdata = {
-        "AndroidGameClient": {
-            "client_id": "3f69e56c7649492c8cc29f1af08a8a12",
-            "secret": "b51ee9cb12234f50a69efa67ef53812e",
-            "encoded": "M2Y2OWU1NmM3NjQ5NDkyYzhjYzI5ZjFhZjA4YThhMTI6YjUxZWU5Y2IxMjIzNGY1MGE2OWVmYTY3ZWY1MzgxMmU="
-        },
-        "IOSGameClient": {
-            "client_id": "3446cd72694c4a4485d81b77adbb2141",
-            "secret": "9209d4a5e25a457fb9b07489d313b41a",
-            "encoded": "MzQ0NmNkNzI2OTRjNGE0NDg1ZDgxYjc3YWRiYjIxNDE6OTIwOWQ0YTVlMjVhNDU3ZmI5YjA3NDg5ZDMxM2I0MWE="
-        },
-        "SwitchGameClient": {
-            "client_id": "5229dcd3ac3845208b496649092f251b",
-            "secret": "e3bd2d3e-bf8c-4857-9e7d-f3d947d220c7",
-            "encoded": "NTIyOWRjZDNhYzM4NDUyMDhiNDk2NjQ5MDkyZjI1MWI6ZTNiZDJkM2UtYmY4Yy00ODU3LTllN2QtZjNkOTQ3ZDIyMGM3"
-        },
-    }
-
 def generate_with_device_code(client: str):
 
-    selected_client_data = clientsdata[client]
+    selected_client_data = json.load(open('clients.json', 'r', encoding='utf-8'))[client]
 
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -171,7 +153,7 @@ def generate_with_device_code(client: str):
 
 def generate_with_auth_code(client: str):
 
-    selected_client_data = clientsdata[client]
+    selected_client_data = json.load(open('clients.json', 'r', encoding='utf-8'))[client]
     log('Web browser opened...', True)
     webbrowser.open(f'https://www.epicgames.com/id/logout?redirectUrl=https%3A//www.epicgames.com/id/login%3FredirectUrl%3Dhttps%253A%252F%252Fwww.epicgames.com%252Fid%252Fapi%252Fredirect%253FclientId%253D{selected_client_data["client_id"]}%2526responseType%253Dcode')
     log('Waiting for code from the user...', True)

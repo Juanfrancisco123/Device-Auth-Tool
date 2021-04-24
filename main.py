@@ -2,6 +2,7 @@
 from util import log, generate_with_device_code, generate_with_auth_code
 import requests
 import crayons
+import json
 import time
 import json
 import os
@@ -11,10 +12,11 @@ def init():
     os.system(f'{"clear" if sys.platform != "win32" else "cls"}')
     log(f'{crayons.cyan("Device Auth Tool", bold=True)} {crayons.magenta("-", bold=True)} {crayons.cyan("By Bay#8172", bold=True)} {crayons.yellow("[Debug Enabled]") if "--debug" in sys.argv else ""}\n')
 
-    clients = ['SwitchGameClient', 'IOSGameClient', 'AndroidGameClient']
+    clients_data = json.load(open('clients.json', 'r', encoding='utf-8'))
+    clientslist = [i for i in clients_data]
     listcls = []
     count = 0
-    for client in clients:
+    for client in clientslist:
         count += 1
         listcls.append(count)
         log(f'{crayons.red("-")} {count}. {client}')
@@ -33,7 +35,7 @@ def init():
             continue
 
         final_client_selection = int(selected_client) -1
-        log(f'Using {crayons.magenta(clients[final_client_selection])}...\n')
+        log(f'Using {crayons.magenta(clientslist[final_client_selection])}...\n')
         break
 
     grant_types = ['Authorization Code', 'Device Code']
@@ -62,14 +64,14 @@ def init():
         break
 
     if grant_types[final_grant_selection] == 'Device Code':
-        data = generate_with_device_code(clients[final_client_selection])
+        data = generate_with_device_code(clientslist[final_client_selection])
         if data == False:
             log('Failed device auth generation.')
         else:
             log('Generated device auths successfully!')
 
     elif grant_types[final_grant_selection] == 'Authorization Code':
-        data = generate_with_auth_code(clients[final_client_selection])
+        data = generate_with_auth_code(clientslist[final_client_selection])
         if data == False:
             log('Failed device auth generation.')
         else:
